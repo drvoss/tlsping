@@ -36,16 +36,17 @@ func collectRun(t *testing.T, cfg Config) ([]Sample, []string) {
 // total is still recorded and the run continues (PLAN §1.1, §4.4).
 func TestTimeoutIsRecordedNotFatal(t *testing.T) {
 	release := make(chan struct{})
-	t.Cleanup(func() { close(release) })
 
-	srv := newCountingServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case <-release:
-		case <-r.Context().Done():
-		case <-time.After(10 * time.Second):
-		}
+	srv := newCountingServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		// Ignore request cancellation intentionally. Do not write a response
+		// until the assertions have completed.
+		<-release
 		w.WriteHeader(http.StatusOK)
 	}), false)
+
+	// Register this after newCountingServer so LIFO cleanup releases the
+	// handler before the server waits for handlers to exit.
+	t.Cleanup(func() { close(release) })
 
 	cfg := testConfig(t, srv.URL)
 	cfg.Timeout = 150 * time.Millisecond
