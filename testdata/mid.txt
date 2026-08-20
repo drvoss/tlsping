@@ -1,0 +1,37 @@
+
+HEAD https://example.com/
+  -> 93.184.216.34:443  h2 · TLS1.3 · 0 bytes
+6 rounds, 1s interval, order=alternate
+times in ms, "-" = not measured
+
+  #1   COLD dns   12 tcp   31 tls   64 srv   33 =   142ms 200
+            warmup
+       WARM wait  95                   srv   33 =   129ms 200
+            warmup·new conn
+  #2   COLD dns    0 tcp   31 tls   63 srv   32 =   128ms 200
+       WARM wait   0                   srv   32 =    33ms 200
+  #3   COLD dns    0 tcp   33 tls   67 srv   38 =   140ms 200
+       WARM wait   0                   srv   37 =    38ms 200
+  #4   COLD dns    0 tcp   32 tls   65 srv   34 =   133ms 200
+       WARM wait   0                   srv   34 =    35ms 200
+  #5   COLD dns    0 tcp   34 tls   71 srv   41 =   148ms 200
+       WARM wait   1                   srv   40 =    42ms 200
+  #6   COLD  timeout (5s)
+       WARM wait   0                   srv   33 =    34ms 200
+
+--- example.com  statistics ---
+  n = 4 (warmup 1 excluded), elapsed 6.2s
+                        cold        warm
+  ok / sent              4/5         5/5
+  loss                 20.0%        0.0%
+  min                  128ms        33ms
+  mean                 137ms        36ms
+  median               136ms        35ms
+  max                  148ms        42ms
+  mdev                   7ms         3ms
+  p95                      -           -
+  (p95 needs n >= 20)
+
+  handshake overhead  +98ms
+    dns 0ms · tcp 32ms · tls 66ms  (per-stage medians)
+  keep-alive gain     +101ms  [reference]

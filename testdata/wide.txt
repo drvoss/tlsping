@@ -1,0 +1,30 @@
+
+HEAD https://example.com/ -> 93.184.216.34:443   h2 · TLS1.3 · 0 bytes
+6 rounds, 1s interval, order=alternate; all times in ms, "-" = not measured
+
+     |  COLD  new connection         |  WARM  keep-alive |
+     |   dns   tcp   tls   srv total |  wait   srv total | code
+-----+-------------------------------+-------------------+-------
+   1 |    12    31    64    33   142 |    95    33   129 | 200      warmup·new conn
+   2 |     0    31    63    32   128 |     0    32    33 | 200
+   3 |     0    33    67    38   140 |     0    37    38 | 200
+   4 |     0    32    65    34   133 |     0    34    35 | 200
+   5 |     0    34    71    41   148 |     1    40    42 | 200
+   6 |         timeout (5s)          |     0    33    34 | -/200
+
+--- example.com  statistics ---
+  n = 4 (warmup 1 excluded), elapsed 6.2s
+                        cold        warm
+  ok / sent              4/5         5/5
+  loss                 20.0%        0.0%
+  min                  128ms        33ms
+  mean                 137ms        36ms
+  median               136ms        35ms
+  max                  148ms        42ms
+  mdev                   7ms         3ms
+  p95                      -           -
+  (p95 needs n >= 20)
+
+  handshake overhead  =  +98ms    median(dns+tcp+tls) per cold sample
+    dns 0ms · tcp 32ms · tls 66ms  (per-stage medians)
+  keep-alive gain     =  +101ms   median(cold.total) - median(warm.total)  [reference]
